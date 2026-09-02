@@ -1,0 +1,17 @@
+name: plataforma-emoticons
+region: nyc
+services:
+  - name: web
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    health_check:
+      http_path: /health
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PIN
+        scope: RUN_TIME
+        type: SECRET
+        value: emoti2026

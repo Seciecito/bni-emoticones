@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super admin · Emoticones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">BNI</div>
+          <div>
+            <h1>Super admin</h1>
+            <p>Publica el texto o pregunta con el mazo que le corresponda</p>
+          </div>
+        </div>
+        <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
+      </header>
+
+      <section class="card" id="auth-card">
+        <h2 class="hero-title">Acceso de control</h2>
+        <p class="lede">PIN del super admin. Los participantes entran solo con su nombre, sin esta clave.</p>
+        <form id="auth-form">
+          <div class="field">
+            <label for="pin">PIN</label>
+            <input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN" required />
+          </div>
+          <button class="btn btn-fire" type="submit">Entrar</button>
+          <p class="error" id="auth-error"></p>
+        </form>
+      </section>
+
+      <section class="admin-layout hidden" id="admin-app">
+        <aside class="card">
+          <h2 class="hero-title" style="font-size: 28px">Nuevo texto / pregunta</h2>
+          <form id="question-form">
+            <div class="field">
+              <label for="question">Texto o pregunta para la sala</label>
+              <textarea id="question" maxlength="280" placeholder="Ej. ¿Quién puede abrir la puerta con el proveedor de logística en Monterrey? o simplemente un enunciado..."></textarea>
+            </div>
+            <div class="field">
+              <label for="preset">Mazo de este texto</label>
+              <select id="preset"></select>
+              <p class="hint" id="preset-hint">Elige un mazo o edita cada significado para que coincida con el texto.</p>
+            </div>
+            <div id="emo-editor" class="emo-editor"></div>
+            <div class="btn-row">
+              <button class="btn btn-ghost" id="add-emo" type="button">Añadir emoticón</button>
+            </div>
+            <button class="btn btn-fire" type="submit">Publicar y abrir votación</button>
+          </form>
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="toggle-btn" type="button">Cerrar votación</button>
+            <button class="btn btn-ghost" id="reset-btn" type="button">Reiniciar votos</button>
+            <button class="btn btn-ghost" id="clear-btn" type="button">Quitar texto</button>
+          </div>
+          <p class="error" id="admin-error"></p>
+          <p class="lede" style="margin-top: 18px">Participantes en sala</p>
+          <div class="people" id="people-list"></div>
+        </aside>
+
+        <section class="card">
+          <div class="question-box">
+            <small id="status-label">Sin texto publicado</small>
+            <h2 id="question-text">Todavía no hay un texto publicado.</h2>
+          </div>
+          <div class="stats">
+            <span id="vote-count">0 votos</span>
+            <span id="open-label">Cerrada</span>
+          </div>
+          <div class="bars" id="bars"></div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/admin.js"></script>
+  </body>
+</html>

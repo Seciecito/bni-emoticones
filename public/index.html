@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voto con emoticones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">BNI</div>
+          <div>
+            <h1>Sala en vivo</h1>
+            <p>Entra con tu nombre y vota con un emoticón</p>
+          </div>
+        </div>
+        <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
+      </header>
+
+      <section class="card" id="join-card">
+        <h2 class="hero-title">¿Cómo te llamas?</h2>
+        <p class="lede">No necesitas cuenta. Escribe tu nombre para participar y que el grupo vea tu voto.</p>
+        <form id="join-form">
+          <div class="field">
+            <label for="name">Tu nombre</label>
+            <input id="name" name="name" maxlength="32" autocomplete="name" placeholder="Ej. Ana Torres" required />
+          </div>
+          <button class="btn btn-fire" type="submit">Entrar a la sala</button>
+          <p class="error" id="join-error"></p>
+        </form>
+      </section>
+
+      <section class="card hidden" id="room-card">
+        <div class="question-box">
+          <small id="status-label">Esperando texto</small>
+          <h2 id="question-text">El super admin publicará el texto en un momento.</h2>
+        </div>
+
+        <div class="wait" id="wait-box">
+          <div class="pulse">⏳</div>
+          <p class="lede" style="margin: 12px auto 0">Cuando salga el texto, elige el emoticón que mejor te represente.</p>
+        </div>
+
+        <div id="vote-box" class="hidden">
+          <div class="emo-grid grid" id="emo-grid"></div>
+        </div>
+
+        <div id="results-box" class="hidden" style="margin-top: 28px">
+          <div class="stats">
+            <span id="vote-count">0 votos</span>
+            <span id="my-vote"></span>
+          </div>
+          <div class="bars" id="bars"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/client.js"></script>
+  </body>
+</html>
