@@ -356,19 +356,19 @@ function renderPresetsEditor() {
       <div class="preset-header">
         <div style="flex:1">
           <div class="field" style="margin-top:0">
-            <label>Nombre del mazo</label>
-            <input class="pe-name" data-pi="${preset.id}" maxlength="48" value="${escapeHtml(preset.name)}" placeholder="Nombre del mazo" />
+            <label>Nombre del set</label>
+            <input class="pe-name" data-pi="${preset.id}" maxlength="48" value="${escapeHtml(preset.name)}" placeholder="Ej. Referidos, Votación semanal..." />
           </div>
           <div class="field">
-            <label>Descripción / pista</label>
-            <input class="pe-hint" data-pi="${preset.id}" maxlength="120" value="${escapeHtml(preset.hint)}" placeholder="Cuándo usar este mazo" />
+            <label>Descripción (opcional)</label>
+            <input class="pe-hint" data-pi="${preset.id}" maxlength="120" value="${escapeHtml(preset.hint)}" placeholder="Cuándo usar este set" />
           </div>
         </div>
       </div>
       <div class="preset-emos" data-pi="${preset.id}">${eRows}</div>
       <div class="btn-row" style="margin-top:10px">
         <button class="btn btn-ghost btn-tiny pe-add-emo" type="button" data-pi="${preset.id}">+ Emoticón</button>
-        <button class="btn btn-fire pe-save" type="button" data-pi="${preset.id}" style="width:auto;margin:0">Guardar mazo</button>
+        <button class="btn btn-fire pe-save" type="button" data-pi="${preset.id}" style="width:auto;margin:0">Guardar set</button>
         <button class="btn btn-ghost btn-tiny pe-delete" type="button" data-pi="${preset.id}" style="color:var(--danger)">Eliminar</button>
       </div>
     `;
@@ -382,7 +382,12 @@ presetsEditor.addEventListener("input", (e) => {
   if (!pi) return;
   const preset = presets.find((p) => p.id === pi);
   if (!preset) return;
-  if (e.target.classList.contains("pe-name")) preset.name = e.target.value;
+  if (e.target.classList.contains("pe-name")) {
+    preset.name = e.target.value;
+    // Actualizar la opción en el selector de la pestaña Pregunta en tiempo real
+    const opt = presetSelect.querySelector(`option[value="${pi}"]`);
+    if (opt) opt.textContent = e.target.value || "(sin nombre)";
+  }
   else if (e.target.classList.contains("pe-hint")) preset.hint = e.target.value;
   else if (e.target.classList.contains("pe-emoji")) {
     const ei = Number(e.target.dataset.ei);
