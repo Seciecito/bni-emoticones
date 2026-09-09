@@ -118,8 +118,12 @@ const toggleBtn     = document.getElementById("toggle-btn");
 const resetBtn      = document.getElementById("reset-btn");
 const clearBtn      = document.getElementById("clear-btn");
 const toast         = document.getElementById("toast");
-const presetsEditor = document.getElementById("presets-editor");
-const newPresetBtn  = document.getElementById("new-preset-btn");
+const presetsEditor   = document.getElementById("presets-editor");
+const newPresetBtn    = document.getElementById("new-preset-btn");
+const historyList     = document.getElementById("history-list");
+const historyCount    = document.getElementById("history-count");
+const exportPdfBtn    = document.getElementById("export-pdf-btn");
+const clearHistoryBtn = document.getElementById("clear-history-btn");
 
 // ── State ─────────────────────────────────────────────────────────────────
 let authed = false;
@@ -483,7 +487,17 @@ socket.on("admin:auth-result", ({ ok, presets: p }) => {
   initPresets(p);
   authCard.classList.add("hidden");
   adminApp.classList.remove("hidden");
+  const logoutBtn = document.getElementById("logout-admin-btn");
+  if (logoutBtn) logoutBtn.style.display = "";
   if (lastState) render(lastState);
+});
+
+document.getElementById("logout-admin-btn")?.addEventListener("click", () => {
+  authed = false;
+  socket.data = {};
+  socket.disconnect();
+  sessionStorage.clear();
+  location.reload();
 });
 
 socket.on("state", (state) => {
@@ -515,3 +529,121 @@ socket.on("admin:presets-updated", ({ ok, presets: p }) => {
 
 socket.on("vote-pulse", ({ name, emoji }) => { if (authed) showToast(`${name} votó ${emoji}`); });
 socket.on("error-msg",  (msg) => { adminError.textContent = msg; mazosError.textContent = msg; });
+
+// ── Historial ─────────────────────────────────────────────────────────────
+function renderHistory(history) {
+  if (!historyList || !historyCount) return;
+  historyCount.textContent = `${history.length} pregunta${history.length !== 1 ? "s" : ""} registrada${history.length !== 1 ? "s" : ""}`;
+  historyList.innerHTML = "";
+  if (!history.length) {
+    historyList.innerHTML = `<div class="info-box" style="text-align:center;padding:24px">
+      Aún no hay preguntas en el historial. Se registran automáticamente al publicar una nueva pregunta o al pulsar "Quitar pregunta".
+    </div>`;
+    return;
+  }
+  history.forEach((q, qi) => {
+    const date = new Date(q.closedAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+    const card = document.createElement("div");
+    card.className = "card history-card";
+    const barsHtml = q.emoticons.map((emo, i) => {
+      const count = q.counts[emo.id] || 0;
+      const pct   = q.totalVotes ? Math.round((count / q.totalVotes) * 100) : 0;
+      const voters = (q.voters[emo.id] || []).map((v) =>
+        v.empresa ? `${escapeHtml(v.name)} (${escapeHtml(v.empresa)})` : escapeHtml(v.name)
+      ).join(", ");
+      return `
+        <div class="bar-row" style="margin-bottom:10px">
+          <div class="bar-meta">
+            <strong>${emo.emoji} ${escapeHtml(emo.label)}</strong>
+            <span>${count} voto${count !== 1 ? "s" : ""} · ${pct}%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill tone-${i}" style="width:${pct}%"></div></div>
+          <div class="names" style="margin-top:4px">${voters || "Sin votos"}</div>
+        </div>`;
+    }).join("");
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px">
+        <div>
+          <span class="history-num">#${qi + 1}</span>
+          <h3 style="margin:4px 0 0;font-size:16px">${escapeHtml(q.text)}</h3>
+        </div>
+        <span style="font-size:12px;color:var(--granite);white-space:nowrap">🕐 ${date} · ${q.totalVotes} voto${q.totalVotes !== 1 ? "s" : ""}</span>
+      </div>
+      ${barsHtml}
+    `;
+    historyList.appendChild(card);
+  });
+}
+
+// Integrar historial en el render principal
+const _renderOrig = render;
+function render(state) {
+  _renderOrig(state);
+  if (Array.isArray(state.history)) renderHistory(state.history);
+}
+
+// Exportar PDF
+exportPdfBtn && exportPdfBtn.addEventListener("click", () => {
+  const history = lastState && lastState.history ? lastState.history : [];
+  if (!history.length) { showToast("No hay preguntas en el historial."); return; }
+
+  const sessionDate = new Date().toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" });
+  const questionsHtml = history.map((q, qi) => {
+    const date = new Date(q.closedAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+    const barsHtml = q.emoticons.map((emo) => {
+      const count = q.counts[emo.id] || 0;
+      const pct   = q.totalVotes ? Math.round((count / q.totalVotes) * 100) : 0;
+      const voters = (q.voters[emo.id] || []).map((v) =>
+        v.empresa ? `${v.name} (${v.empresa})` : v.name
+      ).join(", ");
+      return `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-weight:600">
+            <span>${emo.emoji} ${emo.label}</span>
+            <span>${count} · ${pct}%</span>
+          </div>
+          <div style="background:#e5e7eb;border-radius:4px;height:10px;margin:4px 0">
+            <div style="background:#c8102e;border-radius:4px;height:10px;width:${pct}%"></div>
+          </div>
+          <div style="font-size:11px;color:#666">${voters || "Sin votos"}</div>
+        </div>`;
+    }).join("");
+    return `
+      <div style="margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #e5e7eb">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <strong style="font-size:15px;color:#c8102e">#${qi + 1}</strong>
+          <span style="font-size:11px;color:#888">${date} · ${q.totalVotes} votos</span>
+        </div>
+        <h3 style="margin:0 0 14px;font-size:17px">${q.text}</h3>
+        ${barsHtml}
+      </div>`;
+  }).join("");
+
+  const html = `<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8">
+    <title>Resultados BNI · ${sessionDate}</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 40px; color: #111; }
+      h1   { color: #c8102e; margin-bottom: 4px; }
+      .sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+      @media print { body { padding: 20px; } }
+    </style>
+  </head><body>
+    <h1>BNI · Resultados de la sesión</h1>
+    <p class="sub">${sessionDate} · ${history.length} pregunta${history.length !== 1 ? "s" : ""}</p>
+    ${questionsHtml}
+    <p style="font-size:11px;color:#aaa;margin-top:20px;border-top:1px solid #eee;padding-top:10px">
+      Generado por Plataforma BNI Emoticones
+    </p>
+  </body></html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+});
+
+clearHistoryBtn && clearHistoryBtn.addEventListener("click", () => {
+  if (!confirm("¿Limpiar todo el historial de esta sesión?")) return;
+  socket.emit("admin:clear-history");
+});

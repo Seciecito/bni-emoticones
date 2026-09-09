@@ -78,7 +78,30 @@ const state = {
   question: { id: null, text: "", active: false, emoticons: [], presetId: "" },
   participants: new Map(),
   votes: new Map(),
+  history: [],   // preguntas cerradas con snapshot de votos
 };
+
+// Guarda la pregunta activa + votos en el historial
+function archiveQuestion() {
+  if (!state.question.id || !state.question.text) return;
+  const emoticons = currentEmoticons();
+  const counts = Object.fromEntries(emoticons.map((e) => [e.id, 0]));
+  const voters = Object.fromEntries(emoticons.map((e) => [e.id, []]));
+  for (const vote of state.votes.values()) {
+    if (!(vote.emoticonId in counts)) continue;
+    counts[vote.emoticonId]++;
+    voters[vote.emoticonId].push({ name: vote.name, empresa: vote.empresa || "" });
+  }
+  state.history.push({
+    id: state.question.id,
+    text: state.question.text,
+    closedAt: Date.now(),
+    emoticons,
+    counts,
+    voters,
+    totalVotes: state.votes.size,
+  });
+}
 
 function currentEmoticons() {
   if (state.question.emoticons && state.question.emoticons.length) return state.question.emoticons;
@@ -122,6 +145,7 @@ function publicState() {
       id: p.id, name: p.name,
       empresa: p.empresa || "", giro: p.giro || "",
     })),
+    history: state.history,
   };
 }
 
@@ -191,6 +215,7 @@ io.on("connection", (socket) => {
     const cleanedEmos = sanitizeEmoticons(emoticons);
     if (!cleanedEmos) { socket.emit("error-msg", "Revisa los emoticones: mínimo 2, cada uno con emoji, nombre y significado."); return; }
     const knownPreset = PRESETS.some((p) => p.id === presetId) ? presetId : "custom";
+    archiveQuestion();   // guardar la pregunta anterior antes de reemplazarla
     state.question = { id: Date.now().toString(36), text: clean, active: true, emoticons: cleanedEmos, presetId: knownPreset };
     state.votes.clear();
     broadcast();
@@ -200,8 +225,15 @@ io.on("connection", (socket) => {
   socket.on("admin:reset-votes",  () => { if (!socket.data.isAdmin) return; state.votes.clear(); broadcast(); });
   socket.on("admin:clear-question", () => {
     if (!socket.data.isAdmin) return;
-    state.question = { id: null, text: "", active: false, emoticons: [], presetId: "referidos" };
+    archiveQuestion();   // guardar antes de limpiar
+    state.question = { id: null, text: "", active: false, emoticons: [], presetId: "" };
     state.votes.clear();
+    broadcast();
+  });
+
+  socket.on("admin:clear-history", () => {
+    if (!socket.data.isAdmin) return;
+    state.history = [];
     broadcast();
   });
 

@@ -25,6 +25,7 @@
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 en sala</span></div>
           <div class="pill" id="admin-pill" title="Admins conectados ahora mismo">🛡️ <span id="admin-count">1</span> admin</div>
+          <button class="btn btn-ghost btn-tiny" id="logout-admin-btn" style="display:none;color:var(--granite)" type="button">Cerrar sesión</button>
         </div>
       </header>
 
@@ -49,6 +50,7 @@
         <div class="tab-bar">
           <button class="tab-btn active" data-tab="preguntas">Pregunta</button>
           <button class="tab-btn" data-tab="mazos">Sets de emojis</button>
+          <button class="tab-btn" data-tab="historial">Historial</button>
         </div>
 
         <!-- Tab: Pregunta -->
@@ -114,6 +116,22 @@
           </div>
           <div id="presets-editor"></div>
           <p class="error" id="mazos-error"></p>
+        </div>
+
+        <!-- Tab: Historial -->
+        <div class="tab-panel hidden" id="tab-historial">
+          <div class="info-box" style="margin-bottom:18px">
+            <strong>Historial de la sesión</strong><br>
+            Aquí aparecen todas las preguntas publicadas en esta sesión con sus resultados. Se borra al reiniciar el servidor. Usa <strong>Exportar PDF</strong> para guardarlo.
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+            <span class="lede" style="max-width:none" id="history-count">0 preguntas registradas</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-fire" id="export-pdf-btn" type="button" style="width:auto;margin:0">⬇ Exportar PDF</button>
+              <button class="btn btn-ghost" id="clear-history-btn" type="button" style="width:auto;margin:0;color:var(--danger)">Limpiar historial</button>
+            </div>
+          </div>
+          <div id="history-list"></div>
         </div>
 
       </section>

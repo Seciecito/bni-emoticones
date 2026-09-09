@@ -22,7 +22,10 @@
             <p>Entra con tu nombre y vota con un emoticón</p>
           </div>
         </div>
-        <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
+          <button class="btn btn-ghost btn-tiny" id="logout-user-btn" style="display:none;color:var(--granite)" type="button">Salir</button>
+        </div>
       </header>
 
       <section class="card" id="join-card">

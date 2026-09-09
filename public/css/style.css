@@ -643,6 +643,21 @@ select {
   margin-bottom: 18px;
 }
 
+/* ── Historial ──────────────────────────────────────────────────────────── */
+.history-card {
+  margin-bottom: 18px;
+}
+.history-num {
+  display: inline-block;
+  background: var(--bni-red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-right: 6px;
+}
+
 .preset-header {
   display: flex;
   gap: 12px;

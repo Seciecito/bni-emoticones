@@ -142,7 +142,15 @@ socket.on("joined", ({ name, apellido, empresa, giro }) => {
   badge.className = "profile-badge";
   badge.innerHTML = `<strong>${escapeHtml(me)}</strong> · <span>${escapeHtml(empresa)}</span> <em>${escapeHtml(giro)}</em>`;
   roomCard.prepend(badge);
+  // Mostrar botón de salir
+  const logoutBtn = document.getElementById("logout-user-btn");
+  if (logoutBtn) logoutBtn.style.display = "";
   if (lastState) applyState(lastState);
+});
+
+document.getElementById("logout-user-btn")?.addEventListener("click", () => {
+  sessionStorage.clear();
+  location.reload();
 });
 
 socket.on("state", (state) => {
