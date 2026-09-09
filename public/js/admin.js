@@ -168,7 +168,7 @@ function renderPresetSelect() {
     opt.value = "custom";
     opt.textContent = "✏️ Personalizado (aún no tienes sets guardados)";
     presetSelect.appendChild(opt);
-    presetHint.textContent = "No tienes sets guardados. Ve a la pestaña "Sets de emojis" para crear el primero, o edita los emojis aquí directamente.";
+    presetHint.textContent = 'No tienes sets guardados. Ve a la pestaña "Sets de emojis" para crear el primero, o edita los emojis aqui directamente.';
     presetId = "custom";
     if (!draft.length) draft = [
       { emoji: "⭐", label: "", meaning: "" },
