@@ -221,7 +221,20 @@ io.on("connection", (socket) => {
     broadcast();
   });
 
-  socket.on("admin:toggle",       () => { if (!socket.data.isAdmin || !state.question.id) return; state.question.active = !state.question.active; broadcast(); });
+  socket.on("admin:toggle", () => {
+    if (!socket.data.isAdmin || !state.question.id) return;
+    const wasActive = state.question.active;
+    state.question.active = !wasActive;
+    if (wasActive) {
+      // Se acaba de CERRAR → archivar y limpiar para la siguiente pregunta
+      archiveQuestion();
+      const historyNum = state.history.length;
+      state.question = { id: null, text: "", active: false, emoticons: [], presetId: "" };
+      state.votes.clear();
+      broadcastAdmins("admin:question-archived", { num: historyNum });
+    }
+    broadcast();
+  });
   socket.on("admin:reset-votes",  () => { if (!socket.data.isAdmin) return; state.votes.clear(); broadcast(); });
   socket.on("admin:clear-question", () => {
     if (!socket.data.isAdmin) return;

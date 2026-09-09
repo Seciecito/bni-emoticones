@@ -475,6 +475,18 @@ resetBtn.addEventListener("click",  () => socket.emit("admin:reset-votes"));
 clearBtn.addEventListener("click",  () => { questionInput.value = ""; socket.emit("admin:clear-question"); });
 
 // ── Socket events ─────────────────────────────────────────────────────────
+socket.on("admin:question-archived", ({ num }) => {
+  // Limpiar el formulario y dejar listo para la siguiente pregunta
+  questionInput.value = "";
+  draft = [];
+  if (presets.length) applyPreset(presets[0].id);
+  // Cambiar pestaña a "Pregunta" para que el admin escriba la siguiente
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+  document.querySelector('[data-tab="preguntas"]').classList.add("active");
+  document.getElementById("tab-preguntas").classList.remove("hidden");
+  showToast(`✅ Pregunta #${num} guardada en historial — escribe la siguiente`);
+});
 function initPresets(nextPresets) {
   if (!Array.isArray(nextPresets)) return;
   presets = nextPresets;
