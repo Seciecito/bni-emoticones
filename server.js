@@ -154,6 +154,12 @@ function publicState() {
 
 function broadcast() { io.emit("state", publicState()); }
 
+function broadcastAdmins(event, data) {
+  for (const [, s] of io.sockets.sockets) {
+    if (s.data && s.data.isAdmin) s.emit(event, data);
+  }
+}
+
 app.get("/health", (_req, res) => res.json({ ok: true }));
 app.get("/admin",  (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 app.get("/api/presets", (_req, res) => res.json(PRESETS));
@@ -225,7 +231,7 @@ io.on("connection", (socket) => {
       PRESETS.push({ id: `preset-${Date.now().toString(36)}`, ...clean });
     }
     savePresets(PRESETS);
-    socket.emit("admin:presets-updated", { ok: true, presets: PRESETS });
+    broadcastAdmins("admin:presets-updated", { ok: true, presets: PRESETS });
     broadcast();
   });
 
@@ -234,7 +240,7 @@ io.on("connection", (socket) => {
     if (PRESETS.length <= 1) { socket.emit("error-msg", "Debe quedar al menos un mazo."); return; }
     PRESETS = PRESETS.filter((p) => p.id !== id);
     savePresets(PRESETS);
-    socket.emit("admin:presets-updated", { ok: true, presets: PRESETS });
+    broadcastAdmins("admin:presets-updated", { ok: true, presets: PRESETS });
     broadcast();
   });
 
@@ -251,7 +257,7 @@ io.on("connection", (socket) => {
     };
     PRESETS.push(newPreset);
     savePresets(PRESETS);
-    socket.emit("admin:presets-updated", { ok: true, presets: PRESETS });
+    broadcastAdmins("admin:presets-updated", { ok: true, presets: PRESETS });
     broadcast();
   });
 
