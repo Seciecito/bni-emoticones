@@ -643,6 +643,41 @@ select {
   margin-bottom: 18px;
 }
 
+/* ── Historial participante ──────────────────────────────────────────── */
+.history-q-card {
+  margin-bottom: 14px;
+  opacity: .85;
+}
+.history-q-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.history-q-num {
+  background: var(--granite);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.history-q-text {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+.history-q-meta {
+  font-size: 11px;
+  color: var(--granite);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── Lista compacta de preguntas ─────────────────────────────────────── */
 .prev-q-item {
   display: flex;

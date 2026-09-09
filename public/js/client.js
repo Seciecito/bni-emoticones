@@ -1,5 +1,6 @@
 const socket = io();
 
+const historySection = document.getElementById("history-section");
 const joinCard    = document.getElementById("join-card");
 const roomCard    = document.getElementById("room-card");
 const joinForm    = document.getElementById("join-form");
@@ -92,10 +93,50 @@ function renderBars(state) {
   });
 }
 
+function renderClientHistory(history) {
+  if (!historySection || !me) return;
+  if (!history || !history.length) {
+    historySection.classList.add("hidden");
+    return;
+  }
+  historySection.classList.remove("hidden");
+  historySection.innerHTML = "";
+  history.forEach((q, qi) => {
+    const card = document.createElement("div");
+    card.className = "card history-q-card";
+    const barsHtml = q.emoticons.map((emo, i) => {
+      const count = q.counts[emo.id] || 0;
+      const pct   = q.totalVotes ? Math.round((count / q.totalVotes) * 100) : 0;
+      // Resaltar si yo voté este
+      const myVoted = (q.voters[emo.id] || []).some((v) => v.name === me);
+      return `
+        <div class="bar-row" style="margin-bottom:8px">
+          <div class="bar-meta">
+            <strong>${emo.emoji} ${escapeHtml(emo.label)}</strong>
+            <span>${count} · ${pct}%${myVoted ? " · <em style='color:var(--bni-red)'>tu voto</em>" : ""}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill tone-${i}" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join("");
+    card.innerHTML = `
+      <div class="history-q-header">
+        <span class="history-q-num">#${qi + 1}</span>
+        <p class="history-q-text">${escapeHtml(q.text)}</p>
+        <span class="history-q-meta">${q.totalVotes} voto${q.totalVotes !== 1 ? "s" : ""}</span>
+      </div>
+      ${barsHtml}
+    `;
+    historySection.appendChild(card);
+  });
+}
+
 function applyState(state) {
   lastState = state;
   peopleCount.textContent = `${state.participantCount} conectados`;
   liveDot.classList.toggle("off", !state.question.active);
+
+  // Mostrar historial de preguntas anteriores
+  renderClientHistory(state.history);
 
   if (!me) return;
 
