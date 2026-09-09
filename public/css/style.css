@@ -94,6 +94,9 @@ select {
   color: var(--granite);
 }
 
+#admin-pill { background: #fff3f3; border-color: var(--bni-red); color: var(--bni-red); font-weight: 600; }
+#conn-pill  { background: #f3f6ff; border-color: #a0b0e0; color: #3a50a0; font-weight: 600; }
+
 .dot {
   width: 8px;
   height: 8px;

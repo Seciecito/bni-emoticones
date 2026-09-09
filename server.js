@@ -136,6 +136,12 @@ function publicState() {
     counts[vote.emoticonId] += 1;
     voters[vote.emoticonId].push({ name: vote.name, at: vote.at });
   }
+  let adminCount = 0;
+  let totalConnections = 0;
+  for (const [, s] of io.sockets.sockets) {
+    totalConnections++;
+    if (s.data && s.data.isAdmin) adminCount++;
+  }
   return {
     emoticons,
     presets: PRESETS,
@@ -147,6 +153,8 @@ function publicState() {
     },
     participantCount: state.participants.size,
     voteCount: state.votes.size,
+    adminCount,
+    totalConnections,
     counts, voters,
     participants: [...state.participants.values()].map((p) => ({ id: p.id, name: p.name })),
   };

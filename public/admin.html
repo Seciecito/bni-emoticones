@@ -22,7 +22,11 @@
             <p>Publica preguntas y gestiona los mazos de emoticones</p>
           </div>
         </div>
-        <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 en sala</span></div>
+          <div class="pill" id="admin-pill" title="Admins conectados ahora mismo">🛡️ <span id="admin-count">1</span> admin</div>
+          <div class="pill" id="conn-pill" title="Conexiones totales (con y sin nombre)">🔌 <span id="conn-count">0</span> conexiones</div>
+        </div>
       </header>
 
       <!-- Auth -->

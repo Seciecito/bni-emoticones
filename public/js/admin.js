@@ -105,6 +105,8 @@ const addEmoBtn     = document.getElementById("add-emo");
 const adminError    = document.getElementById("admin-error");
 const mazosError    = document.getElementById("mazos-error");
 const peopleCount   = document.getElementById("people-count");
+const adminCountEl  = document.getElementById("admin-count");
+const connCountEl   = document.getElementById("conn-count");
 const peopleList    = document.getElementById("people-list");
 const liveDot       = document.getElementById("live-dot");
 const statusLabel   = document.getElementById("status-label");
@@ -262,7 +264,14 @@ addEmoBtn.addEventListener("click", () => {
 
 // ── Pregunta: render resultados ───────────────────────────────────────────
 function render(state) {
-  peopleCount.textContent = `${state.participantCount} conectados`;
+  const inSala = state.participantCount === 1 ? "1 en sala" : `${state.participantCount} en sala`;
+  peopleCount.textContent = inSala;
+  if (adminCountEl) {
+    adminCountEl.textContent = state.adminCount ?? 1;
+    const adminPill = document.getElementById("admin-pill");
+    if (adminPill) adminPill.title = `${state.adminCount ?? 1} admin(s) conectado(s) ahora mismo`;
+  }
+  if (connCountEl) connCountEl.textContent = state.totalConnections ?? 0;
   liveDot.classList.toggle("off", !state.question.active);
 
   const hasQ = Boolean(state.question.text);
