@@ -1,0 +1,55 @@
+---
+description: Reglas generales del proyecto BNI Votación con Emojis
+globs: ["**/*.js", "**/*.html", "**/*.css", "**/*.json"]
+alwaysApply: true
+---
+
+# Plataforma de Votación BNI — Reglas del proyecto
+
+## Stack y arquitectura
+- **Backend**: Node.js + Express en `server.js`. Sin framework adicional.
+- **Tiempo real**: Socket.io. Toda comunicación dinámica va por eventos Socket.io, NO por peticiones HTTP (salvo `/health` y `/api/presets`).
+- **Frontend**: HTML + CSS + JS vanilla. Sin frameworks (no React, no Vue). Archivos en `public/`.
+- **Estado**: en memoria del servidor (`state` object en `server.js`). No hay base de datos.
+- **Sets de emojis**: se persisten en `presets.json` (ignorado en git). Si no existe el archivo, el servidor arranca sin sets.
+
+## Convenciones de código
+
+### server.js
+- Toda lógica de negocio y validación va en el servidor, nunca solo en el cliente.
+- Validar con `sanitizeEmoticons()` y `sanitizePreset()` antes de guardar cualquier set.
+- El significado (`meaning`) de los emoticones es **opcional** — no rechazar sets por tenerlo vacío.
+- Usar `broadcastAdmins(event, data)` para enviar eventos solo a admins autenticados.
+- Usar `broadcast()` para enviar `state` a todos los clientes.
+- `publicState()` incluye `adminCount` y `totalConnections` calculados en tiempo real.
+
+### admin.js
+- Nunca usar comillas tipográficas (`"` `"`) dentro de strings de JavaScript. Usar comillas simples `'` o escapar con `\"`.
+- Los sets de emojis se manejan en el array `presets` (local) y se sincronizan con el servidor via `admin:presets-updated`.
+- Al cambiar el nombre de un set en el editor, actualizar la opción del `<select>` en tiempo real (sin esperar a guardar).
+- Dar feedback visual en botones: deshabilitar durante operación, mostrar confirmación verde por 2s al completar.
+
+### CSS / Diseño
+- Tema BNI: rojo `#c8102e` (`--bni-red`), fondo blanco/gris claro, tipografía Montserrat.
+- Usar variables CSS definidas en `:root` para colores. No hardcodear colores BNI fuera de las variables.
+- Los colores de las barras de votos usan clases `tone-0` a `tone-5` (dinámicas por índice).
+
+## Qué NO hacer
+- No agregar defaults hardcodeados de sets de emojis. El servidor arranca vacío y el admin crea los suyos.
+- No bloquear múltiples admins — cada socket se autentica independientemente.
+- No requerir `meaning.length >= 8` — el significado es opcional.
+- No poner `inputmode="numeric"` en el campo PIN del admin (rompe el teclado en móvil).
+- No trackear `presets.json` en git (está en `.gitignore`).
+
+## Despliegue
+- Repositorio: `https://github.com/Seciecito/bni-emoticones`
+- Producción: DigitalOcean App Platform con auto-deploy en push a `main`
+- URL: `https://emoti.bniizcalli.com`
+- DNS: Cloudflare con proxy **desactivado** (DNS only) para que WebSockets funcionen
+- Variable de entorno clave: `ADMIN_PIN` en DigitalOcean Settings
+
+## Flujo de sesión BNI
+1. Admin entra a `/admin` con PIN → crea/elige set de emojis → publica pregunta
+2. Participantes entran a `/` → escriben nombre → votan con emojis
+3. Barras de resultados se actualizan en tiempo real para todos
+4. Admin puede cerrar/reabrir votación, reiniciar votos o publicar nueva pregunta
