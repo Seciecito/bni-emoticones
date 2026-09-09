@@ -1,10 +1,13 @@
 const socket = io();
 
-const joinCard = document.getElementById("join-card");
-const roomCard = document.getElementById("room-card");
-const joinForm = document.getElementById("join-form");
-const joinError = document.getElementById("join-error");
-const nameInput = document.getElementById("name");
+const joinCard    = document.getElementById("join-card");
+const roomCard    = document.getElementById("room-card");
+const joinForm    = document.getElementById("join-form");
+const joinError   = document.getElementById("join-error");
+const nameInput   = document.getElementById("name");
+const apellidoInput = document.getElementById("apellido");
+const empresaInput  = document.getElementById("empresa");
+const giroInput     = document.getElementById("giro");
 const peopleCount = document.getElementById("people-count");
 const liveDot = document.getElementById("live-dot");
 const statusLabel = document.getElementById("status-label");
@@ -18,12 +21,18 @@ const voteCount = document.getElementById("vote-count");
 const myVote = document.getElementById("my-vote");
 const toast = document.getElementById("toast");
 
-let me = null;
+let me = null;          // nombre completo visible
 let lastState = null;
 let myEmoticonId = null;
 
-const savedName = sessionStorage.getItem("emo-name");
-if (savedName) nameInput.value = savedName;
+// Restaurar campos guardados
+const savedData = JSON.parse(sessionStorage.getItem("emo-profile") || "null");
+if (savedData) {
+  nameInput.value     = savedData.name     || "";
+  apellidoInput.value = savedData.apellido || "";
+  empresaInput.value  = savedData.empresa  || "";
+  giroInput.value     = savedData.giro     || "";
+}
 
 function showToast(text) {
   toast.textContent = text;
@@ -115,14 +124,24 @@ function applyState(state) {
 joinForm.addEventListener("submit", (event) => {
   event.preventDefault();
   joinError.textContent = "";
-  socket.emit("join", { name: nameInput.value });
+  socket.emit("join", {
+    name:     nameInput.value,
+    apellido: apellidoInput.value,
+    empresa:  empresaInput.value,
+    giro:     giroInput.value,
+  });
 });
 
-socket.on("joined", ({ name }) => {
-  me = name;
-  sessionStorage.setItem("emo-name", name);
+socket.on("joined", ({ name, apellido, empresa, giro }) => {
+  me = `${name} ${apellido}`.trim();
+  sessionStorage.setItem("emo-profile", JSON.stringify({ name, apellido, empresa, giro }));
   joinCard.classList.add("hidden");
   roomCard.classList.remove("hidden");
+  // Mostrar ficha del participante
+  const badge = document.createElement("div");
+  badge.className = "profile-badge";
+  badge.innerHTML = `<strong>${escapeHtml(me)}</strong> · <span>${escapeHtml(empresa)}</span> <em>${escapeHtml(giro)}</em>`;
+  roomCard.prepend(badge);
   if (lastState) applyState(lastState);
 });
 
@@ -144,7 +163,12 @@ socket.on("error-msg", (msg) => {
 });
 
 socket.on("connect", () => {
-  if (savedName && !me) {
-    socket.emit("join", { name: savedName });
+  if (savedData && !me) {
+    socket.emit("join", {
+      name:     savedData.name,
+      apellido: savedData.apellido,
+      empresa:  savedData.empresa,
+      giro:     savedData.giro,
+    });
   }
 });

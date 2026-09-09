@@ -301,8 +301,13 @@ function render(state) {
     peopleList.innerHTML = '<span class="chip">Nadie conectado aún</span>';
   } else {
     state.participants.forEach((p) => {
-      const chip = document.createElement("span");
-      chip.className = "chip"; chip.textContent = p.name;
+      const chip = document.createElement("div");
+      chip.className = "participant-chip";
+      chip.innerHTML = `
+        <strong>${escapeHtml(p.name)}</strong>
+        ${p.empresa ? `<span class="chip-empresa">${escapeHtml(p.empresa)}</span>` : ""}
+        ${p.giro    ? `<em class="chip-giro">${escapeHtml(p.giro)}</em>` : ""}
+      `;
       peopleList.appendChild(chip);
     });
   }
@@ -310,7 +315,9 @@ function render(state) {
   bars.innerHTML = "";
   state.emoticons.forEach((emo, i) => {
     const count = state.counts[emo.id] || 0;
-    const names = (state.voters[emo.id] || []).map((v) => escapeHtml(v.name)).join(", ");
+    const names = (state.voters[emo.id] || []).map((v) =>
+      v.empresa ? `${escapeHtml(v.name)} <em style="font-weight:400">(${escapeHtml(v.empresa)})</em>` : escapeHtml(v.name)
+    ).join(" · ");
     const row = document.createElement("div");
     row.className = "bar-row";
     row.innerHTML = `

@@ -481,6 +481,49 @@ select {
   color: var(--granite);
 }
 
+/* Chip de participante (admin panel) */
+.participant-chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--sterling);
+  background: var(--light);
+  font-size: 12px;
+}
+.participant-chip strong { color: var(--ink); font-size: 13px; }
+.chip-empresa { color: var(--bni-red); font-weight: 600; }
+.chip-giro    { color: var(--granite); font-style: normal; }
+
+/* Ficha del participante en la sala */
+.profile-badge {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: center;
+  background: #fff3f3;
+  border-left: 4px solid var(--bni-red);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.profile-badge strong { color: var(--ink); }
+.profile-badge span   { color: var(--bni-red); font-weight: 600; }
+.profile-badge em     { color: var(--granite); font-style: normal; }
+
+/* Dos columnas en el form de entrada */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+@media (max-width: 480px) {
+  .field-row { grid-template-columns: 1fr; }
+}
+
 .stats {
   display: flex;
   gap: 18px;

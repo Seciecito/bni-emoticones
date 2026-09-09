@@ -26,12 +26,26 @@
       </header>
 
       <section class="card" id="join-card">
-        <h2 class="hero-title">¿Cómo te llamas?</h2>
-        <p class="lede">No necesitas cuenta. Escribe tu nombre para participar y que el grupo vea tu voto.</p>
+        <h2 class="hero-title">Bienvenido</h2>
+        <p class="lede">Sin cuenta, sin contraseña. Solo llena tus datos para participar.</p>
         <form id="join-form">
+          <div class="field-row">
+            <div class="field">
+              <label for="name">Nombre</label>
+              <input id="name" name="name" maxlength="32" autocomplete="given-name" placeholder="Ej. Ana" required />
+            </div>
+            <div class="field">
+              <label for="apellido">Apellido</label>
+              <input id="apellido" name="apellido" maxlength="32" autocomplete="family-name" placeholder="Ej. Torres" required />
+            </div>
+          </div>
           <div class="field">
-            <label for="name">Tu nombre</label>
-            <input id="name" name="name" maxlength="32" autocomplete="name" placeholder="Ej. Ana Torres" required />
+            <label for="empresa">Empresa</label>
+            <input id="empresa" name="empresa" maxlength="64" autocomplete="organization" placeholder="Ej. Torres Logística" required />
+          </div>
+          <div class="field">
+            <label for="giro">Giro / Industria</label>
+            <input id="giro" name="giro" maxlength="64" placeholder="Ej. Transporte y Logística" required />
           </div>
           <button class="btn btn-fire" type="submit">Entrar a la sala</button>
           <p class="error" id="join-error"></p>

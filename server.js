@@ -96,7 +96,7 @@ function publicState() {
   for (const vote of state.votes.values()) {
     if (!(vote.emoticonId in counts)) continue;
     counts[vote.emoticonId] += 1;
-    voters[vote.emoticonId].push({ name: vote.name, at: vote.at });
+    voters[vote.emoticonId].push({ name: vote.name, empresa: vote.empresa || "", at: vote.at });
   }
   let adminCount = 0;
   let totalConnections = 0;
@@ -118,7 +118,10 @@ function publicState() {
     adminCount,
     totalConnections,
     counts, voters,
-    participants: [...state.participants.values()].map((p) => ({ id: p.id, name: p.name })),
+    participants: [...state.participants.values()].map((p) => ({
+      id: p.id, name: p.name,
+      empresa: p.empresa || "", giro: p.giro || "",
+    })),
   };
 }
 
@@ -138,15 +141,28 @@ app.get("/api/presets", (_req, res) => res.json(PRESETS));
 io.on("connection", (socket) => {
   socket.emit("state", publicState());
 
-  socket.on("join", ({ name }) => {
-    const clean = String(name || "").replace(/[^\p{L}\p{N} .'-]/gu, "").trim().slice(0, 32);
-    if (clean.length < 2) { socket.emit("error-msg", "Escribe un nombre de al menos 2 caracteres."); return; }
+  socket.on("join", ({ name, apellido, empresa, giro }) => {
+    const sanitize = (v, max) => String(v || "").replace(/[^\p{L}\p{N} .,'&()-]/gu, "").trim().slice(0, max);
+    const cleanName     = sanitize(name,     32);
+    const cleanApellido = sanitize(apellido, 32);
+    const cleanEmpresa  = sanitize(empresa,  64);
+    const cleanGiro     = sanitize(giro,     64);
+    if (cleanName.length < 2)     { socket.emit("error-msg", "Escribe tu nombre (mínimo 2 caracteres)."); return; }
+    if (cleanApellido.length < 2) { socket.emit("error-msg", "Escribe tu apellido (mínimo 2 caracteres)."); return; }
+    if (cleanEmpresa.length < 2)  { socket.emit("error-msg", "Escribe el nombre de tu empresa."); return; }
+    if (cleanGiro.length < 2)     { socket.emit("error-msg", "Escribe tu giro o industria."); return; }
+    const fullName = `${cleanName} ${cleanApellido}`;
     const existing = [...state.participants.values()].find(
-      (p) => p.socketId !== socket.id && p.name.toLowerCase() === clean.toLowerCase()
+      (p) => p.socketId !== socket.id && p.name.toLowerCase() === fullName.toLowerCase()
     );
     if (existing) { socket.emit("error-msg", "Ese nombre ya está en uso. Prueba con otro."); return; }
-    state.participants.set(socket.id, { id: socket.id, socketId: socket.id, name: clean, joinedAt: Date.now() });
-    socket.emit("joined", { name: clean, id: socket.id });
+    state.participants.set(socket.id, {
+      id: socket.id, socketId: socket.id,
+      name: fullName, nombre: cleanName, apellido: cleanApellido,
+      empresa: cleanEmpresa, giro: cleanGiro,
+      joinedAt: Date.now(),
+    });
+    socket.emit("joined", { name: cleanName, apellido: cleanApellido, empresa: cleanEmpresa, giro: cleanGiro, id: socket.id });
     broadcast();
   });
 
@@ -156,7 +172,7 @@ io.on("connection", (socket) => {
     if (!state.question.active)   { socket.emit("error-msg", "No hay una votación abierta."); return; }
     const chosen = currentEmoticons().find((e) => e.id === emoticonId);
     if (!chosen) { socket.emit("error-msg", "Emoticón no válido para esta pregunta."); return; }
-    state.votes.set(participant.name.toLowerCase(), { emoticonId, name: participant.name, at: Date.now() });
+    state.votes.set(participant.name.toLowerCase(), { emoticonId, name: participant.name, empresa: participant.empresa || "", at: Date.now() });
     io.emit("vote-pulse", { name: participant.name, emoticonId, emoji: chosen.emoji });
     broadcast();
   });
