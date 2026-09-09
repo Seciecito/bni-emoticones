@@ -335,8 +335,11 @@ function render(state) {
     `;
     bars.appendChild(row);
   });
-  // Historial
-  if (Array.isArray(state.history)) renderHistory(state.history);
+  // Lista compacta de preguntas en el panel lateral
+  if (Array.isArray(state.history)) {
+    renderPrevQuestions(state.history, state.question);
+    renderHistory(state.history);
+  }
 }
 
 // ── Tab Mazos: editor de presets ──────────────────────────────────────────
@@ -550,6 +553,42 @@ socket.on("admin:presets-updated", ({ ok, presets: p }) => {
 
 socket.on("vote-pulse", ({ name, emoji }) => { if (authed) showToast(`${name} votó ${emoji}`); });
 socket.on("error-msg",  (msg) => { adminError.textContent = msg; mazosError.textContent = msg; });
+
+// ── Lista compacta de preguntas en el panel lateral ───────────────────────
+function renderPrevQuestions(history, currentQ) {
+  const el = document.getElementById("prev-questions-list");
+  if (!el) return;
+  el.innerHTML = "";
+
+  // Preguntas pasadas (historial)
+  if (!history.length && !currentQ.text) {
+    el.innerHTML = '<span class="chip">Ninguna aún</span>';
+    return;
+  }
+
+  history.forEach((q, i) => {
+    const item = document.createElement("div");
+    item.className = "prev-q-item prev-q-done";
+    item.innerHTML = `
+      <span class="prev-q-num">#${i + 1}</span>
+      <span class="prev-q-text">${escapeHtml(q.text)}</span>
+      <span class="prev-q-votes">${q.totalVotes} voto${q.totalVotes !== 1 ? "s" : ""}</span>
+    `;
+    el.appendChild(item);
+  });
+
+  // Pregunta activa o cerrada actualmente
+  if (currentQ.text) {
+    const item = document.createElement("div");
+    item.className = `prev-q-item ${currentQ.active ? "prev-q-active" : "prev-q-closed"}`;
+    item.innerHTML = `
+      <span class="prev-q-num">#${history.length + 1}</span>
+      <span class="prev-q-text">${escapeHtml(currentQ.text)}</span>
+      <span class="prev-q-badge">${currentQ.active ? "🟢 Abierta" : "🔴 Cerrada"}</span>
+    `;
+    el.appendChild(item);
+  }
+}
 
 // ── Historial ─────────────────────────────────────────────────────────────
 function renderHistory(history) {

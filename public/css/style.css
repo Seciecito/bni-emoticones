@@ -643,6 +643,24 @@ select {
   margin-bottom: 18px;
 }
 
+/* ── Lista compacta de preguntas ─────────────────────────────────────── */
+.prev-q-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  border: 1px solid var(--sterling);
+}
+.prev-q-done   { background: var(--light); color: var(--granite); }
+.prev-q-active { background: #ecfdf5; border-color: #16a34a; color: #166534; }
+.prev-q-closed { background: #fff3f3; border-color: var(--bni-red); color: #7f1d1d; }
+.prev-q-num  { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.prev-q-text { flex: 1; line-height: 1.4; }
+.prev-q-votes, .prev-q-badge { white-space: nowrap; font-size: 11px; flex-shrink: 0; }
+
 /* ── Banner siguiente pregunta ────────────────────────────────────────── */
 .next-q-banner {
   background: #ecfdf5;
