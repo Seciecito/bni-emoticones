@@ -163,6 +163,20 @@ function totalVotes(state) { return state.voteCount || 0; }
 function renderPresetSelect() {
   const prev = presetId;
   presetSelect.innerHTML = "";
+  if (!presets.length) {
+    const opt = document.createElement("option");
+    opt.value = "custom";
+    opt.textContent = "✏️ Personalizado (aún no tienes sets guardados)";
+    presetSelect.appendChild(opt);
+    presetHint.textContent = "No tienes sets guardados. Ve a la pestaña "Sets de emojis" para crear el primero, o edita los emojis aquí directamente.";
+    presetId = "custom";
+    if (!draft.length) draft = [
+      { emoji: "⭐", label: "", meaning: "" },
+      { emoji: "💫", label: "", meaning: "" },
+    ];
+    renderDraftEditor();
+    return;
+  }
   presets.forEach((p) => {
     const opt = document.createElement("option");
     opt.value = p.id;
@@ -315,6 +329,13 @@ function render(state) {
 // ── Tab Mazos: editor de presets ──────────────────────────────────────────
 function renderPresetsEditor() {
   presetsEditor.innerHTML = "";
+  if (!presets.length) {
+    presetsEditor.innerHTML = `<div class="info-box" style="text-align:center;padding:24px">
+      <strong>Aún no tienes sets guardados.</strong><br>
+      Pulsa <strong>+ Nuevo set</strong> para crear el primero.
+    </div>`;
+    return;
+  }
   presets.forEach((preset) => {
     const card = document.createElement("div");
     card.className = "card preset-card";
@@ -435,10 +456,10 @@ clearBtn.addEventListener("click",  () => { questionInput.value = ""; socket.emi
 
 // ── Socket events ─────────────────────────────────────────────────────────
 function initPresets(nextPresets) {
-  if (!Array.isArray(nextPresets) || !nextPresets.length) return;
+  if (!Array.isArray(nextPresets)) return;
   presets = nextPresets;
   renderPresetSelect();
-  applyPreset(presets[0].id);
+  if (presets.length) applyPreset(presets[0].id);
   renderPresetsEditor();
 }
 

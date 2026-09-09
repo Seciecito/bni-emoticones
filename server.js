@@ -9,53 +9,15 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PIN = process.env.ADMIN_PIN || "emoti2026";
 const PRESETS_FILE = path.join(__dirname, "presets.json");
 
-const DEFAULT_PRESETS = [
-  {
-    id: "referidos",
-    name: "Referidos (Givers Gain)",
-    hint: "Para preguntas de quién puede abrir una puerta o traer un contacto.",
-    emoticons: [
-      { id: "fire",   emoji: "🔥", label: "Fuego",    meaning: "Tengo el contacto directo para abrir esa puerta." },
-      { id: "clap",   emoji: "👏", label: "Aplausos", meaning: "Conozco a un aliado o proveedor que nos puede acercar estratégicamente." },
-      { id: "idea",   emoji: "💡", label: "Foco",     meaning: "Tengo una estrategia, consejo legal o solución operativa para resolverlo." },
-      { id: "bridge", emoji: "🤝", label: "Puente",   meaning: "Puedo presentar o facilitar una conexión entre las partes clave." },
-      { id: "build",  emoji: "🛠️", label: "Ejecución",meaning: "Tengo recursos, equipo o capacidad para hacerlo realidad." },
-    ],
-  },
-  {
-    id: "aprendizaje",
-    name: "Aprendizaje de cápsula",
-    hint: "Para cerrar una cápsula: qué me llevo y qué necesito.",
-    emoticons: [
-      { id: "claro",   emoji: "✅", label: "Claro",   meaning: "Lo puedo aplicar esta semana con un cliente." },
-      { id: "ejemplo", emoji: "🎯", label: "Ejemplo", meaning: "Necesito un caso real o un 1 a 1 para aterrizarlo." },
-      { id: "equipo",  emoji: "🧩", label: "Equipo",  meaning: "Esto le sirve a un aliado de mi Power Team." },
-      { id: "invitar", emoji: "👋", label: "Invitar", meaning: "Esto es motivo para volver o invitar a alguien." },
-      { id: "duda",    emoji: "❓", label: "Duda",    meaning: "Tengo una objeción o un hueco; quiero preguntar." },
-    ],
-  },
-  {
-    id: "compromiso",
-    name: "Compromiso / Ask",
-    hint: "Para un ask concreto de la semana.",
-    emoticons: [
-      { id: "yo",       emoji: "🙋", label: "Yo lo hago", meaning: "Puedo cumplir este ask o dar el referido esta semana." },
-      { id: "unoauno",  emoji: "☕", label: "1 a 1",      meaning: "Quiero un uno a uno para aterrizar cómo ayudar." },
-      { id: "presento", emoji: "📞", label: "Presento",   meaning: "Puedo hacer una introducción puntual." },
-      { id: "ahora-no", emoji: "⏳", label: "Ahora no",   meaning: "No aplica para mí en este momento." },
-    ],
-  },
-];
-
-// ── Persistencia de mazos ──────────────────────────────────────────────────
+// ── Persistencia de sets ───────────────────────────────────────────────────
 function loadPresets() {
   try {
     if (fs.existsSync(PRESETS_FILE)) {
       const data = JSON.parse(fs.readFileSync(PRESETS_FILE, "utf8"));
-      if (Array.isArray(data) && data.length >= 1) return data;
+      if (Array.isArray(data)) return data;   // acepta array vacío — no hay defaults
     }
   } catch (_) {}
-  return DEFAULT_PRESETS.map((p) => ({ ...p }));
+  return [];   // sin defaults: el admin crea sus propios sets
 }
 
 function savePresets(list) {
@@ -113,14 +75,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 const state = {
-  question: { id: null, text: "", active: false, emoticons: [], presetId: "referidos" },
+  question: { id: null, text: "", active: false, emoticons: [], presetId: "" },
   participants: new Map(),
   votes: new Map(),
 };
 
 function currentEmoticons() {
   if (state.question.emoticons && state.question.emoticons.length) return state.question.emoticons;
-  return PRESETS[0].emoticons;
+  return PRESETS.length ? PRESETS[0].emoticons : [];
 }
 
 function emptyCounts(emoticons) {
