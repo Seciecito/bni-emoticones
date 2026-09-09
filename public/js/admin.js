@@ -335,6 +335,8 @@ function render(state) {
     `;
     bars.appendChild(row);
   });
+  // Historial
+  if (Array.isArray(state.history)) renderHistory(state.history);
 }
 
 // ── Tab Mazos: editor de presets ──────────────────────────────────────────
@@ -573,13 +575,6 @@ function renderHistory(history) {
     `;
     historyList.appendChild(card);
   });
-}
-
-// Integrar historial en el render principal
-const _renderOrig = render;
-function render(state) {
-  _renderOrig(state);
-  if (Array.isArray(state.history)) renderHistory(state.history);
 }
 
 // Exportar PDF
