@@ -48,7 +48,7 @@
         <!-- Pestañas -->
         <div class="tab-bar">
           <button class="tab-btn active" data-tab="preguntas">Pregunta</button>
-          <button class="tab-btn" data-tab="mazos">Mazos</button>
+          <button class="tab-btn" data-tab="mazos">Sets de emojis</button>
         </div>
 
         <!-- Tab: Pregunta -->
@@ -56,19 +56,25 @@
           <div class="admin-layout">
             <aside class="card">
               <h2 class="hero-title" style="font-size: 26px">Nueva pregunta</h2>
+              <div class="info-box" style="margin-bottom:18px">
+                <strong>¿Cómo funciona?</strong><br>
+                1. Escribe la pregunta para la sala.<br>
+                2. Elige un <em>set de emojis</em> — son los botones con los que los participantes van a responder. Puedes editar el nombre y significado de cada emoji para que encaje con la pregunta.<br>
+                3. Pulsa <strong>Publicar</strong> y la sala verá la pregunta en tiempo real.
+              </div>
               <form id="question-form">
                 <div class="field">
-                  <label for="question">Texto o pregunta para la sala</label>
+                  <label for="question">Pregunta para la sala</label>
                   <textarea id="question" maxlength="280" placeholder="Ej. ¿Quién puede abrir la puerta con el proveedor de logística en Monterrey?"></textarea>
                 </div>
                 <div class="field">
-                  <label for="preset">Mazo de esta pregunta</label>
+                  <label for="preset">Botones de respuesta <span style="font-weight:400;color:var(--granite)">(emojis que verán los participantes)</span></label>
                   <select id="preset"></select>
-                  <p class="hint" id="preset-hint">Elige un mazo o edita cada significado para que coincida con la pregunta.</p>
+                  <p class="hint" id="preset-hint">Puedes dejar los emojis tal como están o editar el nombre y significado de cada uno para que encaje con la pregunta.</p>
                 </div>
                 <div id="emo-editor" class="emo-editor"></div>
                 <div class="btn-row">
-                  <button class="btn btn-ghost" id="add-emo" type="button">+ Añadir emoticón</button>
+                  <button class="btn btn-ghost" id="add-emo" type="button">+ Añadir emoji</button>
                 </div>
                 <button class="btn btn-fire" type="submit">Publicar y abrir votación</button>
               </form>
@@ -96,11 +102,15 @@
           </div>
         </div>
 
-        <!-- Tab: Mazos -->
+        <!-- Tab: Sets de emojis -->
         <div class="tab-panel hidden" id="tab-mazos">
+          <div class="info-box" style="margin-bottom:18px">
+            <strong>Sets de emojis guardados</strong><br>
+            Cada set es un grupo de emojis con sus significados. Al publicar una pregunta puedes elegir un set existente (o personalizarlo). Los cambios que hagas aquí quedan guardados para todas las sesiones futuras.
+          </div>
           <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <p class="lede" style="max-width:none">Edita, crea o elimina los mazos de emoticones disponibles para todas las sesiones.</p>
-            <button class="btn btn-fire" id="new-preset-btn" type="button" style="width:auto;margin:0">+ Nuevo mazo</button>
+            <p class="lede" style="max-width:none">Edita, crea o elimina los sets de emojis disponibles.</p>
+            <button class="btn btn-fire" id="new-preset-btn" type="button" style="width:auto;margin:0">+ Nuevo set</button>
           </div>
           <div id="presets-editor"></div>
           <p class="error" id="mazos-error"></p>

@@ -171,7 +171,7 @@ function renderPresetSelect() {
   });
   const custom = document.createElement("option");
   custom.value = "custom";
-  custom.textContent = "Personalizado para esta pregunta";
+  custom.textContent = "✏️ Personalizado (solo esta pregunta)";
   presetSelect.appendChild(custom);
   presetSelect.value = prev && (presets.some((p) => p.id === prev) || prev === "custom") ? prev : (presets[0] && presets[0].id);
 }
@@ -191,7 +191,7 @@ function markCustomIfEdited() {
     presetId = "custom";
     suppressPresetChange = true;
     presetSelect.value = "custom";
-    presetHint.textContent = "Mazo personalizado para esta pregunta.";
+    presetHint.textContent = "Set personalizado para esta pregunta.";
     suppressPresetChange = false;
   }
 }
@@ -217,13 +217,13 @@ function renderDraftEditor() {
 function applyPreset(id) {
   if (id === "custom") {
     presetId = "custom";
-    presetHint.textContent = "Edita emoji, nombre y significado para que coincidan con la pregunta.";
+    presetHint.textContent = "Set personalizado: edita emoji, nombre y significado para esta pregunta.";
     if (!draft.length) draft = clonePreset("referidos");
     renderDraftEditor(); return;
   }
   presetId = id;
   const p = presets.find((x) => x.id === id);
-  presetHint.textContent = p ? p.hint : "Elige un mazo o edita cada significado.";
+  presetHint.textContent = p ? p.hint : "Puedes editar cada emoji para que coincida con la pregunta.";
   draft = clonePreset(id);
   renderDraftEditor();
 }
@@ -250,7 +250,7 @@ emoEditor.addEventListener("click", (e) => {
   if (!btn || btn.disabled) return;
   draft.splice(Number(btn.getAttribute("data-remove")), 1);
   presetId = "custom"; presetSelect.value = "custom";
-  presetHint.textContent = "Mazo personalizado para esta pregunta.";
+  presetHint.textContent = "Set personalizado para esta pregunta.";
   renderDraftEditor();
 });
 
@@ -258,7 +258,7 @@ addEmoBtn.addEventListener("click", () => {
   if (draft.length >= 6) return;
   draft.push({ emoji: "⭐", label: "", meaning: "" });
   presetId = "custom"; presetSelect.value = "custom";
-  presetHint.textContent = "Mazo personalizado para esta pregunta.";
+  presetHint.textContent = "Set personalizado para esta pregunta.";
   renderDraftEditor();
 });
 
@@ -461,8 +461,11 @@ socket.on("admin:presets-updated", ({ ok, presets: p }) => {
   if (!ok) return;
   presets = p;
   renderPresetSelect();
+  // Re-sync hint si el set seleccionado fue el que cambió
+  const current = presets.find((x) => x.id === presetId);
+  if (current) presetHint.textContent = current.hint || "Edita emoji, nombre y significado para que coincidan con la pregunta.";
   renderPresetsEditor();
-  showToast("Mazo guardado ✓");
+  showToast("Set guardado ✓");
 });
 
 socket.on("vote-pulse", ({ name, emoji }) => { if (authed) showToast(`${name} votó ${emoji}`); });
