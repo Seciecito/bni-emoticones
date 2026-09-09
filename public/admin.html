@@ -19,12 +19,13 @@
           <div class="mark">BNI</div>
           <div>
             <h1>Super admin</h1>
-            <p>Publica el texto o pregunta con el mazo que le corresponda</p>
+            <p>Publica preguntas y gestiona los mazos de emoticones</p>
           </div>
         </div>
         <div class="pill"><span class="dot" id="live-dot"></span> <span id="people-count">0 conectados</span></div>
       </header>
 
+      <!-- Auth -->
       <section class="card" id="auth-card">
         <h2 class="hero-title">Acceso de control</h2>
         <p class="lede">PIN del super admin. Los participantes entran solo con su nombre, sin esta clave.</p>
@@ -38,46 +39,70 @@
         </form>
       </section>
 
-      <section class="admin-layout hidden" id="admin-app">
-        <aside class="card">
-          <h2 class="hero-title" style="font-size: 28px">Nuevo texto / pregunta</h2>
-          <form id="question-form">
-            <div class="field">
-              <label for="question">Texto o pregunta para la sala</label>
-              <textarea id="question" maxlength="280" placeholder="Ej. ¿Quién puede abrir la puerta con el proveedor de logística en Monterrey? o simplemente un enunciado..."></textarea>
-            </div>
-            <div class="field">
-              <label for="preset">Mazo de este texto</label>
-              <select id="preset"></select>
-              <p class="hint" id="preset-hint">Elige un mazo o edita cada significado para que coincida con el texto.</p>
-            </div>
-            <div id="emo-editor" class="emo-editor"></div>
-            <div class="btn-row">
-              <button class="btn btn-ghost" id="add-emo" type="button">Añadir emoticón</button>
-            </div>
-            <button class="btn btn-fire" type="submit">Publicar y abrir votación</button>
-          </form>
-          <div class="btn-row">
-            <button class="btn btn-ghost" id="toggle-btn" type="button">Cerrar votación</button>
-            <button class="btn btn-ghost" id="reset-btn" type="button">Reiniciar votos</button>
-            <button class="btn btn-ghost" id="clear-btn" type="button">Quitar texto</button>
-          </div>
-          <p class="error" id="admin-error"></p>
-          <p class="lede" style="margin-top: 18px">Participantes en sala</p>
-          <div class="people" id="people-list"></div>
-        </aside>
+      <!-- App principal -->
+      <section class="hidden" id="admin-app">
 
-        <section class="card">
-          <div class="question-box">
-            <small id="status-label">Sin texto publicado</small>
-            <h2 id="question-text">Todavía no hay un texto publicado.</h2>
+        <!-- Pestañas -->
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="preguntas">Pregunta</button>
+          <button class="tab-btn" data-tab="mazos">Mazos</button>
+        </div>
+
+        <!-- Tab: Pregunta -->
+        <div class="tab-panel" id="tab-preguntas">
+          <div class="admin-layout">
+            <aside class="card">
+              <h2 class="hero-title" style="font-size: 26px">Nueva pregunta</h2>
+              <form id="question-form">
+                <div class="field">
+                  <label for="question">Texto o pregunta para la sala</label>
+                  <textarea id="question" maxlength="280" placeholder="Ej. ¿Quién puede abrir la puerta con el proveedor de logística en Monterrey?"></textarea>
+                </div>
+                <div class="field">
+                  <label for="preset">Mazo de esta pregunta</label>
+                  <select id="preset"></select>
+                  <p class="hint" id="preset-hint">Elige un mazo o edita cada significado para que coincida con la pregunta.</p>
+                </div>
+                <div id="emo-editor" class="emo-editor"></div>
+                <div class="btn-row">
+                  <button class="btn btn-ghost" id="add-emo" type="button">+ Añadir emoticón</button>
+                </div>
+                <button class="btn btn-fire" type="submit">Publicar y abrir votación</button>
+              </form>
+              <div class="btn-row" style="margin-top:20px">
+                <button class="btn btn-ghost" id="toggle-btn" type="button">Cerrar votación</button>
+                <button class="btn btn-ghost" id="reset-btn" type="button">Reiniciar votos</button>
+                <button class="btn btn-ghost" id="clear-btn" type="button">Quitar pregunta</button>
+              </div>
+              <p class="error" id="admin-error"></p>
+              <p class="lede" style="margin-top: 18px">Participantes en sala</p>
+              <div class="people" id="people-list"></div>
+            </aside>
+
+            <section class="card">
+              <div class="question-box">
+                <small id="status-label">Sin texto publicado</small>
+                <h2 id="question-text">Todavía no hay un texto publicado.</h2>
+              </div>
+              <div class="stats">
+                <span id="vote-count">0 votos</span>
+                <span id="open-label">Cerrada</span>
+              </div>
+              <div class="bars" id="bars"></div>
+            </section>
           </div>
-          <div class="stats">
-            <span id="vote-count">0 votos</span>
-            <span id="open-label">Cerrada</span>
+        </div>
+
+        <!-- Tab: Mazos -->
+        <div class="tab-panel hidden" id="tab-mazos">
+          <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <p class="lede" style="max-width:none">Edita, crea o elimina los mazos de emoticones disponibles para todas las sesiones.</p>
+            <button class="btn btn-fire" id="new-preset-btn" type="button" style="width:auto;margin:0">+ Nuevo mazo</button>
           </div>
-          <div class="bars" id="bars"></div>
-        </section>
+          <div id="presets-editor"></div>
+          <p class="error" id="mazos-error"></p>
+        </div>
+
       </section>
     </main>
 

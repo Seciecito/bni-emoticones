@@ -1,29 +1,34 @@
 const socket = io();
 
-const authCard = document.getElementById("auth-card");
-const adminApp = document.getElementById("admin-app");
-const authForm = document.getElementById("auth-form");
-const authError = document.getElementById("auth-error");
-const questionForm = document.getElementById("question-form");
+// ── DOM refs ──────────────────────────────────────────────────────────────
+const authCard      = document.getElementById("auth-card");
+const adminApp      = document.getElementById("admin-app");
+const authForm      = document.getElementById("auth-form");
+const authError     = document.getElementById("auth-error");
+const questionForm  = document.getElementById("question-form");
 const questionInput = document.getElementById("question");
-const presetSelect = document.getElementById("preset");
-const presetHint = document.getElementById("preset-hint");
-const emoEditor = document.getElementById("emo-editor");
-const addEmoBtn = document.getElementById("add-emo");
-const adminError = document.getElementById("admin-error");
-const peopleCount = document.getElementById("people-count");
-const peopleList = document.getElementById("people-list");
-const liveDot = document.getElementById("live-dot");
-const statusLabel = document.getElementById("status-label");
-const questionText = document.getElementById("question-text");
-const voteCount = document.getElementById("vote-count");
-const openLabel = document.getElementById("open-label");
-const bars = document.getElementById("bars");
-const toggleBtn = document.getElementById("toggle-btn");
-const resetBtn = document.getElementById("reset-btn");
-const clearBtn = document.getElementById("clear-btn");
-const toast = document.getElementById("toast");
+const presetSelect  = document.getElementById("preset");
+const presetHint    = document.getElementById("preset-hint");
+const emoEditor     = document.getElementById("emo-editor");
+const addEmoBtn     = document.getElementById("add-emo");
+const adminError    = document.getElementById("admin-error");
+const mazosError    = document.getElementById("mazos-error");
+const peopleCount   = document.getElementById("people-count");
+const peopleList    = document.getElementById("people-list");
+const liveDot       = document.getElementById("live-dot");
+const statusLabel   = document.getElementById("status-label");
+const questionText  = document.getElementById("question-text");
+const voteCount     = document.getElementById("vote-count");
+const openLabel     = document.getElementById("open-label");
+const bars          = document.getElementById("bars");
+const toggleBtn     = document.getElementById("toggle-btn");
+const resetBtn      = document.getElementById("reset-btn");
+const clearBtn      = document.getElementById("clear-btn");
+const toast         = document.getElementById("toast");
+const presetsEditor = document.getElementById("presets-editor");
+const newPresetBtn  = document.getElementById("new-preset-btn");
 
+// ── State ─────────────────────────────────────────────────────────────────
 let authed = false;
 let lastState = null;
 let presets = [];
@@ -31,6 +36,17 @@ let draft = [];
 let presetId = "referidos";
 let suppressPresetChange = false;
 
+// ── Tabs ──────────────────────────────────────────────────────────────────
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
+    btn.classList.add("active");
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove("hidden");
+  });
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────
 function showToast(text) {
   toast.textContent = text;
   toast.classList.add("show");
@@ -38,82 +54,67 @@ function showToast(text) {
   showToast.t = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+function escapeHtml(v) {
+  return String(v)
+    .replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
 
-function percent(count, totalVotes) {
-  if (!totalVotes) return 0;
-  return Math.round((count / totalVotes) * 100);
+function percent(count, total) {
+  return total ? Math.round((count / total) * 100) : 0;
+}
+
+function totalVotes(state) { return state.voteCount || 0; }
+
+// ── Pregunta: preset select ───────────────────────────────────────────────
+function renderPresetSelect() {
+  const prev = presetId;
+  presetSelect.innerHTML = "";
+  presets.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name;
+    presetSelect.appendChild(opt);
+  });
+  const custom = document.createElement("option");
+  custom.value = "custom";
+  custom.textContent = "Personalizado para esta pregunta";
+  presetSelect.appendChild(custom);
+  presetSelect.value = prev && (presets.some((p) => p.id === prev) || prev === "custom") ? prev : (presets[0] && presets[0].id);
 }
 
 function clonePreset(id) {
-  const preset = presets.find((item) => item.id === id) || presets[0];
-  return (preset.emoticons || []).map((item) => ({
-    emoji: item.emoji,
-    label: item.label,
-    meaning: item.meaning,
-  }));
+  const preset = presets.find((p) => p.id === id) || presets[0];
+  return (preset.emoticons || []).map((e) => ({ emoji: e.emoji, label: e.label, meaning: e.meaning }));
 }
 
 function markCustomIfEdited() {
   if (presetId === "custom") return;
-  const original = presets.find((item) => item.id === presetId);
-  if (!original) {
-    presetId = "custom";
-    return;
-  }
-  const same =
-    original.emoticons.length === draft.length &&
-    original.emoticons.every((item, index) => {
-      const row = draft[index];
-      return (
-        item.emoji === row.emoji &&
-        item.label === row.label &&
-        item.meaning === row.meaning
-      );
-    });
+  const original = presets.find((p) => p.id === presetId);
+  if (!original) { presetId = "custom"; return; }
+  const same = original.emoticons.length === draft.length &&
+    original.emoticons.every((e, i) => e.emoji === draft[i].emoji && e.label === draft[i].label && e.meaning === draft[i].meaning);
   if (!same) {
     presetId = "custom";
     suppressPresetChange = true;
     presetSelect.value = "custom";
-    presetHint.textContent = "Mazo personalizado para este texto.";
+    presetHint.textContent = "Mazo personalizado para esta pregunta.";
     suppressPresetChange = false;
   }
 }
 
-function renderPresetSelect() {
-  const previous = presetId;
-  presetSelect.innerHTML = "";
-  presets.forEach((preset) => {
-    const option = document.createElement("option");
-    option.value = preset.id;
-    option.textContent = preset.name;
-    presetSelect.appendChild(option);
-  });
-  const custom = document.createElement("option");
-  custom.value = "custom";
-  custom.textContent = "Personalizado para este texto";
-  presetSelect.appendChild(custom);
-  presetSelect.value = previous;
-}
-
-function renderEditor() {
+function renderDraftEditor() {
   emoEditor.innerHTML = "";
-  draft.forEach((row, index) => {
+  draft.forEach((row, i) => {
     const wrap = document.createElement("div");
     wrap.className = "emo-edit";
     wrap.innerHTML = `
       <div class="emo-edit-top">
-        <input class="emoji" data-field="emoji" data-index="${index}" maxlength="8" value="${escapeHtml(row.emoji)}" aria-label="Emoticón" />
-        <input data-field="label" data-index="${index}" maxlength="24" value="${escapeHtml(row.label)}" placeholder="Nombre" aria-label="Nombre" />
-        <button class="btn btn-ghost btn-tiny" type="button" data-remove="${index}" ${draft.length <= 2 ? "disabled" : ""}>Quitar</button>
+        <input class="emoji" data-field="emoji" data-index="${i}" maxlength="8" value="${escapeHtml(row.emoji)}" aria-label="Emoticón" />
+        <input data-field="label" data-index="${i}" maxlength="24" value="${escapeHtml(row.label)}" placeholder="Nombre" aria-label="Nombre" />
+        <button class="btn btn-ghost btn-tiny" type="button" data-remove="${i}" ${draft.length <= 2 ? "disabled" : ""}>Quitar</button>
       </div>
-      <textarea data-field="meaning" data-index="${index}" maxlength="180" placeholder="Qué significa votar esto en ESTE texto" aria-label="Significado">${escapeHtml(row.meaning)}</textarea>
+      <textarea data-field="meaning" data-index="${i}" maxlength="180" placeholder="Qué significa votar esto" aria-label="Significado">${escapeHtml(row.meaning)}</textarea>
     `;
     emoEditor.appendChild(wrap);
   });
@@ -123,45 +124,63 @@ function renderEditor() {
 function applyPreset(id) {
   if (id === "custom") {
     presetId = "custom";
-    presetHint.textContent = "Edita emoji, nombre y significado para que coincidan con el texto.";
+    presetHint.textContent = "Edita emoji, nombre y significado para que coincidan con la pregunta.";
     if (!draft.length) draft = clonePreset("referidos");
-    renderEditor();
-    return;
+    renderDraftEditor(); return;
   }
   presetId = id;
-  const preset = presets.find((item) => item.id === id);
-  presetHint.textContent = preset
-    ? preset.hint
-    : "Elige un mazo o edita cada significado.";
+  const p = presets.find((x) => x.id === id);
+  presetHint.textContent = p ? p.hint : "Elige un mazo o edita cada significado.";
   draft = clonePreset(id);
-  renderEditor();
+  renderDraftEditor();
 }
 
 function collectDraft() {
-  return draft.map((row) => ({
-    emoji: row.emoji.trim(),
-    label: row.label.trim(),
-    meaning: row.meaning.trim(),
-  }));
+  return draft.map((r) => ({ emoji: r.emoji.trim(), label: r.label.trim(), meaning: r.meaning.trim() }));
 }
 
+presetSelect.addEventListener("change", () => {
+  if (suppressPresetChange) return;
+  applyPreset(presetSelect.value);
+});
+
+emoEditor.addEventListener("input", (e) => {
+  const field = e.target.getAttribute("data-field");
+  const idx   = Number(e.target.getAttribute("data-index"));
+  if (!field || isNaN(idx) || !draft[idx]) return;
+  draft[idx][field] = e.target.value;
+  markCustomIfEdited();
+});
+
+emoEditor.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-remove]");
+  if (!btn || btn.disabled) return;
+  draft.splice(Number(btn.getAttribute("data-remove")), 1);
+  presetId = "custom"; presetSelect.value = "custom";
+  presetHint.textContent = "Mazo personalizado para esta pregunta.";
+  renderDraftEditor();
+});
+
+addEmoBtn.addEventListener("click", () => {
+  if (draft.length >= 6) return;
+  draft.push({ emoji: "⭐", label: "", meaning: "" });
+  presetId = "custom"; presetSelect.value = "custom";
+  presetHint.textContent = "Mazo personalizado para esta pregunta.";
+  renderDraftEditor();
+});
+
+// ── Pregunta: render resultados ───────────────────────────────────────────
 function render(state) {
   peopleCount.textContent = `${state.participantCount} conectados`;
   liveDot.classList.toggle("off", !state.question.active);
 
-  const hasQuestion = Boolean(state.question.text);
-  statusLabel.textContent = !hasQuestion
-    ? "Sin texto publicado"
-    : state.question.active
-      ? "Votación abierta"
-      : "Votación cerrada";
-  questionText.textContent = hasQuestion
-    ? state.question.text
-    : "Todavía no hay un texto publicado.";
+  const hasQ = Boolean(state.question.text);
+  statusLabel.textContent = !hasQ ? "Sin texto publicado" : state.question.active ? "Votación abierta" : "Votación cerrada";
+  questionText.textContent = hasQ ? state.question.text : "Todavía no hay un texto publicado.";
   voteCount.textContent = `${state.voteCount} votos`;
-  openLabel.textContent = state.question.active ? "Abierta" : "Cerrada";
-  toggleBtn.textContent = state.question.active ? "Cerrar votación" : "Reabrir votación";
-  toggleBtn.disabled = !hasQuestion;
+  openLabel.textContent  = state.question.active ? "Abierta" : "Cerrada";
+  toggleBtn.textContent  = state.question.active ? "Cerrar votación" : "Reabrir votación";
+  toggleBtn.disabled = !hasQ;
 
   peopleList.innerHTML = "";
   if (!state.participants.length) {
@@ -169,14 +188,13 @@ function render(state) {
   } else {
     state.participants.forEach((p) => {
       const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.textContent = p.name;
+      chip.className = "chip"; chip.textContent = p.name;
       peopleList.appendChild(chip);
     });
   }
 
   bars.innerHTML = "";
-  state.emoticons.forEach((emo, index) => {
+  state.emoticons.forEach((emo, i) => {
     const count = state.counts[emo.id] || 0;
     const names = (state.voters[emo.id] || []).map((v) => escapeHtml(v.name)).join(", ");
     const row = document.createElement("div");
@@ -184,9 +202,9 @@ function render(state) {
     row.innerHTML = `
       <div class="bar-meta">
         <strong>${emo.emoji} ${escapeHtml(emo.label)}</strong>
-        <span>${count} · ${percent(count, total(state))}%</span>
+        <span>${count} · ${percent(count, totalVotes(state))}%</span>
       </div>
-      <div class="bar-track"><div class="bar-fill tone-${index}" style="width:${percent(count, total(state))}%"></div></div>
+      <div class="bar-track"><div class="bar-fill tone-${i}" style="width:${percent(count, totalVotes(state))}%"></div></div>
       <p class="lede" style="max-width:none;font-size:12px;margin-top:2px">${escapeHtml(emo.meaning)}</p>
       <div class="names">${names || "Sin votos todavía"}</div>
     `;
@@ -194,81 +212,140 @@ function render(state) {
   });
 }
 
-function total(state) {
-  return state.voteCount || 0;
+// ── Tab Mazos: editor de presets ──────────────────────────────────────────
+function renderPresetsEditor() {
+  presetsEditor.innerHTML = "";
+  presets.forEach((preset) => {
+    const card = document.createElement("div");
+    card.className = "card preset-card";
+    card.dataset.id = preset.id;
+
+    const eRows = preset.emoticons.map((e, i) => `
+      <div class="emo-edit">
+        <div class="emo-edit-top">
+          <input class="emoji pe-emoji" data-pi="${preset.id}" data-ei="${i}" data-field="emoji" maxlength="8" value="${escapeHtml(e.emoji)}" />
+          <input class="pe-label" data-pi="${preset.id}" data-ei="${i}" data-field="label" maxlength="24" value="${escapeHtml(e.label)}" placeholder="Nombre" />
+          <button class="btn btn-ghost btn-tiny pe-remove-emo" type="button" data-pi="${preset.id}" data-ei="${i}" ${preset.emoticons.length <= 2 ? "disabled" : ""}>✕</button>
+        </div>
+        <textarea class="pe-meaning" data-pi="${preset.id}" data-ei="${i}" data-field="meaning" maxlength="180" placeholder="Significado">${escapeHtml(e.meaning)}</textarea>
+      </div>
+    `).join("");
+
+    card.innerHTML = `
+      <div class="preset-header">
+        <div style="flex:1">
+          <div class="field" style="margin-top:0">
+            <label>Nombre del mazo</label>
+            <input class="pe-name" data-pi="${preset.id}" maxlength="48" value="${escapeHtml(preset.name)}" placeholder="Nombre del mazo" />
+          </div>
+          <div class="field">
+            <label>Descripción / pista</label>
+            <input class="pe-hint" data-pi="${preset.id}" maxlength="120" value="${escapeHtml(preset.hint)}" placeholder="Cuándo usar este mazo" />
+          </div>
+        </div>
+      </div>
+      <div class="preset-emos" data-pi="${preset.id}">${eRows}</div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-ghost btn-tiny pe-add-emo" type="button" data-pi="${preset.id}">+ Emoticón</button>
+        <button class="btn btn-fire pe-save" type="button" data-pi="${preset.id}" style="width:auto;margin:0">Guardar mazo</button>
+        <button class="btn btn-ghost btn-tiny pe-delete" type="button" data-pi="${preset.id}" style="color:var(--danger)">Eliminar</button>
+      </div>
+    `;
+    presetsEditor.appendChild(card);
+  });
 }
 
-authForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+// Delegación de eventos en el editor de presets
+presetsEditor.addEventListener("input", (e) => {
+  const pi = e.target.dataset.pi;
+  if (!pi) return;
+  const preset = presets.find((p) => p.id === pi);
+  if (!preset) return;
+  if (e.target.classList.contains("pe-name")) preset.name = e.target.value;
+  else if (e.target.classList.contains("pe-hint")) preset.hint = e.target.value;
+  else if (e.target.classList.contains("pe-emoji")) {
+    const ei = Number(e.target.dataset.ei);
+    if (preset.emoticons[ei]) preset.emoticons[ei].emoji = e.target.value;
+  } else if (e.target.classList.contains("pe-label")) {
+    const ei = Number(e.target.dataset.ei);
+    if (preset.emoticons[ei]) preset.emoticons[ei].label = e.target.value;
+  } else if (e.target.classList.contains("pe-meaning")) {
+    const ei = Number(e.target.dataset.ei);
+    if (preset.emoticons[ei]) preset.emoticons[ei].meaning = e.target.value;
+  }
+});
+
+presetsEditor.addEventListener("click", (e) => {
+  // Guardar
+  const saveBtn = e.target.closest(".pe-save");
+  if (saveBtn) {
+    const pi = saveBtn.dataset.pi;
+    const preset = presets.find((p) => p.id === pi);
+    if (!preset) return;
+    mazosError.textContent = "";
+    socket.emit("admin:save-preset", { id: pi, data: preset });
+    return;
+  }
+  // Eliminar mazo
+  const delBtn = e.target.closest(".pe-delete");
+  if (delBtn) {
+    if (!confirm("¿Eliminar este mazo?")) return;
+    socket.emit("admin:delete-preset", { id: delBtn.dataset.pi });
+    return;
+  }
+  // Añadir emoticón al mazo
+  const addEmoP = e.target.closest(".pe-add-emo");
+  if (addEmoP) {
+    const pi = addEmoP.dataset.pi;
+    const preset = presets.find((p) => p.id === pi);
+    if (!preset || preset.emoticons.length >= 6) return;
+    preset.emoticons.push({ id: `opt-${preset.emoticons.length}`, emoji: "⭐", label: "", meaning: "" });
+    renderPresetsEditor(); return;
+  }
+  // Quitar emoticón del mazo
+  const removeEmo = e.target.closest(".pe-remove-emo");
+  if (removeEmo) {
+    const pi = removeEmo.dataset.pi;
+    const ei = Number(removeEmo.dataset.ei);
+    const preset = presets.find((p) => p.id === pi);
+    if (!preset || preset.emoticons.length <= 2) return;
+    preset.emoticons.splice(ei, 1);
+    renderPresetsEditor();
+  }
+});
+
+newPresetBtn.addEventListener("click", () => socket.emit("admin:new-preset"));
+
+// ── Pregunta: eventos ─────────────────────────────────────────────────────
+authForm.addEventListener("submit", (e) => {
+  e.preventDefault();
   authError.textContent = "";
   socket.emit("admin:auth", { pin: document.getElementById("pin").value });
 });
 
-presetSelect.addEventListener("change", () => {
-  if (suppressPresetChange) return;
-  applyPreset(presetSelect.value);
-});
-
-emoEditor.addEventListener("input", (event) => {
-  const field = event.target.getAttribute("data-field");
-  const index = Number(event.target.getAttribute("data-index"));
-  if (!field || Number.isNaN(index) || !draft[index]) return;
-  draft[index][field] = event.target.value;
-  markCustomIfEdited();
-});
-
-emoEditor.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-remove]");
-  if (!button || button.disabled) return;
-  const index = Number(button.getAttribute("data-remove"));
-  draft.splice(index, 1);
-  presetId = "custom";
-  presetSelect.value = "custom";
-  presetHint.textContent = "Mazo personalizado para este texto.";
-  renderEditor();
-});
-
-addEmoBtn.addEventListener("click", () => {
-  if (draft.length >= 6) return;
-  draft.push({
-    emoji: "⭐",
-    label: "",
-    meaning: "",
-  });
-  presetId = "custom";
-  presetSelect.value = "custom";
-  presetHint.textContent = "Mazo personalizado para este texto.";
-  renderEditor();
-});
-
-questionForm.addEventListener("submit", (event) => {
-  event.preventDefault();
+questionForm.addEventListener("submit", (e) => {
+  e.preventDefault();
   adminError.textContent = "";
-  socket.emit("admin:set-question", {
-    text: questionInput.value,
-    emoticons: collectDraft(),
-    presetId,
-  });
+  socket.emit("admin:set-question", { text: questionInput.value, emoticons: collectDraft(), presetId });
 });
 
 toggleBtn.addEventListener("click", () => socket.emit("admin:toggle"));
-resetBtn.addEventListener("click", () => socket.emit("admin:reset-votes"));
-clearBtn.addEventListener("click", () => {
-  questionInput.value = "";
-  socket.emit("admin:clear-question");
-});
+resetBtn.addEventListener("click",  () => socket.emit("admin:reset-votes"));
+clearBtn.addEventListener("click",  () => { questionInput.value = ""; socket.emit("admin:clear-question"); });
 
-socket.on("admin:auth-result", ({ ok, presets: nextPresets }) => {
-  if (!ok) {
-    authError.textContent = "PIN incorrecto.";
-    return;
-  }
+// ── Socket events ─────────────────────────────────────────────────────────
+function initPresets(nextPresets) {
+  if (!Array.isArray(nextPresets) || !nextPresets.length) return;
+  presets = nextPresets;
+  renderPresetSelect();
+  applyPreset(presets[0].id);
+  renderPresetsEditor();
+}
+
+socket.on("admin:auth-result", ({ ok, presets: p }) => {
+  if (!ok) { authError.textContent = "PIN incorrecto."; return; }
   authed = true;
-  if (Array.isArray(nextPresets) && nextPresets.length) {
-    presets = nextPresets;
-    renderPresetSelect();
-    applyPreset("referidos");
-  }
+  initPresets(p);
   authCard.classList.add("hidden");
   adminApp.classList.remove("hidden");
   if (lastState) render(lastState);
@@ -276,18 +353,17 @@ socket.on("admin:auth-result", ({ ok, presets: nextPresets }) => {
 
 socket.on("state", (state) => {
   lastState = state;
-  if (Array.isArray(state.presets) && state.presets.length && !presets.length) {
-    presets = state.presets;
-    renderPresetSelect();
-    applyPreset("referidos");
-  }
+  if (!presets.length && Array.isArray(state.presets)) initPresets(state.presets);
   if (authed) render(state);
 });
 
-socket.on("vote-pulse", ({ name, emoji }) => {
-  if (authed) showToast(`${name} votó ${emoji}`);
+socket.on("admin:presets-updated", ({ ok, presets: p }) => {
+  if (!ok) return;
+  presets = p;
+  renderPresetSelect();
+  renderPresetsEditor();
+  showToast("Mazo guardado ✓");
 });
 
-socket.on("error-msg", (msg) => {
-  adminError.textContent = msg;
-});
+socket.on("vote-pulse", ({ name, emoji }) => { if (authed) showToast(`${name} votó ${emoji}`); });
+socket.on("error-msg",  (msg) => { adminError.textContent = msg; mazosError.textContent = msg; });
