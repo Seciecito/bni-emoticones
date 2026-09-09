@@ -44,7 +44,7 @@ function sanitizeEmoticons(list) {
     const emoji   = takeEmojis(item && item.emoji, 2);
     const label   = String((item && item.label)   || "").trim().slice(0, 24);
     const meaning = String((item && item.meaning) || "").trim().slice(0, 180);
-    if (!emoji || label.length < 2 || meaning.length < 8) continue;
+    if (!emoji || label.length < 2) continue;  // significado es opcional
     cleaned.push({ id: `opt-${cleaned.length}`, emoji, label, meaning });
   }
   if (cleaned.length < 2) return null;
