@@ -409,13 +409,15 @@ presetsEditor.addEventListener("click", (e) => {
     const preset = presets.find((p) => p.id === pi);
     if (!preset) return;
     mazosError.textContent = "";
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Guardando...";
     socket.emit("admin:save-preset", { id: pi, data: preset });
     return;
   }
-  // Eliminar mazo
+  // Eliminar set
   const delBtn = e.target.closest(".pe-delete");
   if (delBtn) {
-    if (!confirm("¿Eliminar este mazo?")) return;
+    if (!confirm("¿Eliminar este set de emojis?")) return;
     socket.emit("admin:delete-preset", { id: delBtn.dataset.pi });
     return;
   }
@@ -491,6 +493,16 @@ socket.on("admin:presets-updated", ({ ok, presets: p }) => {
   const current = presets.find((x) => x.id === presetId);
   if (current) presetHint.textContent = current.hint || "Edita emoji, nombre y significado para que coincidan con la pregunta.";
   renderPresetsEditor();
+  // Marcar botones de guardar como confirmados
+  presetsEditor.querySelectorAll(".pe-save").forEach((btn) => {
+    btn.textContent = "✓ Guardado";
+    btn.style.background = "#16a34a";
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.textContent = "Guardar set";
+      btn.style.background = "";
+    }, 2000);
+  });
   showToast("Set guardado ✓");
 });
 
