@@ -480,12 +480,19 @@ socket.on("admin:question-archived", ({ num }) => {
   questionInput.value = "";
   draft = [];
   if (presets.length) applyPreset(presets[0].id);
-  // Cambiar pestaña a "Pregunta" para que el admin escriba la siguiente
+  // Cambiar pestaña a "Pregunta"
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.add("hidden"));
   document.querySelector('[data-tab="preguntas"]').classList.add("active");
   document.getElementById("tab-preguntas").classList.remove("hidden");
-  showToast(`✅ Pregunta #${num} guardada en historial — escribe la siguiente`);
+  // Mostrar banner y enfocar el textarea
+  const banner = document.getElementById("next-question-banner");
+  if (banner) {
+    banner.textContent = `✅ Pregunta #${num} guardada — escribe la siguiente aquí abajo`;
+    banner.classList.remove("hidden");
+    setTimeout(() => banner.classList.add("hidden"), 6000);
+  }
+  setTimeout(() => { questionInput.focus(); questionInput.scrollIntoView({ behavior: "smooth", block: "center" }); }, 200);
 });
 function initPresets(nextPresets) {
   if (!Array.isArray(nextPresets)) return;
