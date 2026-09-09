@@ -1,3 +1,94 @@
+// ── Emoji picker ─────────────────────────────────────────────────────────
+const EMOJI_GROUPS = [
+  { label: "Caras", emojis: ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😍","🥰","😘","😎","🤓","🧐","😏","😒","😞","😔","😟","😕","🙁","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","😈","👿","😱","😰","😨","🤯","😳","🥵","🥶","😴","🤤","🤢","🤮","🤧","😷","🤒","🤕","🥳","🤩","🥸","😻","😼","🤑"] },
+  { label: "Manos", emojis: ["👍","👎","👌","🤌","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","👇","☝️","👋","🤚","🖐","✋","🖖","👏","🙌","🤲","🤝","🙏","✍️","💪","🦾","🫶","🫵","🫱","🫲"] },
+  { label: "Personas", emojis: ["🙋","🙋‍♂️","🙋‍♀️","🤷","🤷‍♂️","🤷‍♀️","🤦","💁","🧑‍💼","👨‍💼","👩‍💼","🧑‍🏫","👨‍🏫","🤵","👔","🎓","🏆","🥇","🥈","🥉","🎖️","🏅","🎯","🎪","👥","👤"] },
+  { label: "Objetos", emojis: ["🔥","💡","🛠️","🔑","🗝️","🔒","🔓","📋","📌","📎","✏️","📝","📊","📈","📉","💼","📦","📬","📱","💻","🖥️","🖨️","⌨️","🖱️","📡","🔭","🔬","💊","💉","🧪","🧲","⚙️","🔧","🔩","🪛","🪚","🗜️","⛓️","🪝","🧰","🗄️","🗃️","📁","📂","🗂️","📅","📆","🗒️"] },
+  { label: "Símbolos", emojis: ["✅","❌","⚠️","❓","❗","💬","💭","🗯️","💥","✨","🌟","⭐","🌈","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🔶","🔷","🔸","🔹","🔺","🔻","💠","🔘","🔲","🔳","▪️","▫️","🏁","🚩","🎌","🏴","🏳️","🆕","🆒","🆓","🔝","🆙","🆗","🆘","🆚","🉐","🚀","⚡","🌀","🌊"] },
+  { label: "Naturaleza", emojis: ["🌱","🌿","🍀","🌲","🌳","🌵","🌾","🌺","🌸","🌼","🌻","🍁","🍂","🍃","🌍","🌎","🌏","🌙","☀️","🌤️","⛅","🌧️","⛈️","🌩️","❄️","🌊","💧","🌈","☔","⭐","🌟","💫","✨","🌠","☁️"] },
+  { label: "Comida", emojis: ["☕","🍵","🧃","🥤","🍺","🥂","🍾","🎂","🍰","🧁","🍩","🍪","🍫","🍬","🍭","🍑","🍓","🍎","🍊","🍋","🍇","🍉","🍌","🥝","🍕","🍔","🌮","🌯","🥗","🍜","🍣","🍱"] },
+];
+
+let pickerTarget = null;
+let pickerEl = null;
+
+function buildPicker() {
+  if (pickerEl) return;
+  pickerEl = document.createElement("div");
+  pickerEl.className = "emoji-picker hidden";
+  pickerEl.innerHTML = `
+    <div class="ep-tabs">${EMOJI_GROUPS.map((g, i) =>
+      `<button class="ep-tab${i === 0 ? " active" : ""}" data-gi="${i}">${g.emojis[0]}</button>`
+    ).join("")}</div>
+    <div class="ep-grid" id="ep-grid"></div>
+  `;
+  document.body.appendChild(pickerEl);
+
+  pickerEl.querySelector(".ep-tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".ep-tab");
+    if (!btn) return;
+    pickerEl.querySelectorAll(".ep-tab").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderPickerGroup(Number(btn.dataset.gi));
+  });
+
+  document.getElementById("ep-grid").addEventListener("click", (e) => {
+    const btn = e.target.closest(".ep-emoji-btn");
+    if (!btn || !pickerTarget) return;
+    pickerTarget.value = btn.textContent;
+    pickerTarget.dispatchEvent(new Event("input", { bubbles: true }));
+    closePicker();
+  });
+
+  renderPickerGroup(0);
+}
+
+function renderPickerGroup(gi) {
+  const grid = document.getElementById("ep-grid");
+  grid.innerHTML = EMOJI_GROUPS[gi].emojis
+    .map((e) => `<button class="ep-emoji-btn" type="button">${e}</button>`)
+    .join("");
+}
+
+function openPicker(inputEl) {
+  buildPicker();
+  pickerTarget = inputEl;
+  const rect = inputEl.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  pickerEl.classList.remove("hidden");
+  if (spaceBelow < 280) {
+    pickerEl.style.top  = (window.scrollY + rect.top - 260) + "px";
+  } else {
+    pickerEl.style.top  = (window.scrollY + rect.bottom + 4) + "px";
+  }
+  pickerEl.style.left = Math.min(rect.left, window.innerWidth - 300) + "px";
+}
+
+function closePicker() {
+  if (pickerEl) pickerEl.classList.add("hidden");
+  pickerTarget = null;
+}
+
+document.addEventListener("click", (e) => {
+  if (pickerEl && !pickerEl.classList.contains("hidden")) {
+    if (!pickerEl.contains(e.target) && !e.target.classList.contains("emoji") && !e.target.classList.contains("pe-emoji")) {
+      closePicker();
+    }
+  }
+});
+
+// Abrir picker al hacer clic en cualquier input emoji
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("emoji") || e.target.classList.contains("pe-emoji")) {
+    e.stopPropagation();
+    if (pickerTarget === e.target && pickerEl && !pickerEl.classList.contains("hidden")) {
+      closePicker();
+    } else {
+      openPicker(e.target);
+    }
+  }
+});
+
 const socket = io();
 
 // ── DOM refs ──────────────────────────────────────────────────────────────

@@ -212,10 +212,14 @@ select {
   resize: vertical;
 }
 
-.emo-edit input.emoji {
-  font-size: 24px;
+.emo-edit input.emoji,
+.emo-edit input.pe-emoji {
+  font-size: 26px;
   text-align: center;
-  padding: 8px;
+  padding: 6px;
+  cursor: pointer;
+  background: var(--light);
+  border-color: var(--sterling);
 }
 
 .btn-tiny {
@@ -484,6 +488,64 @@ select {
 
 .hidden {
   display: none !important;
+}
+
+/* ── Emoji picker ─────────────────────────────────────────────────────── */
+.emoji-picker {
+  position: absolute;
+  z-index: 999;
+  background: var(--white);
+  border: 1px solid var(--sterling);
+  border-radius: 14px;
+  width: 290px;
+  padding: 10px;
+}
+
+.ep-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--sterling);
+  padding-bottom: 8px;
+}
+
+.ep-tab {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ep-tab:hover,
+.ep-tab.active {
+  background: var(--light);
+}
+
+.ep-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ep-emoji-btn {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1;
+  text-align: center;
+}
+
+.ep-emoji-btn:hover {
+  background: var(--light);
 }
 
 /* ── Pestañas ─────────────────────────────────────────────────────────── */
